@@ -1,13 +1,194 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: "Roobert", sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -moz-user-select:none; /* firefox */
+   -webkit-user-select: none; /* Safari */
+   -ms-user-select: none; /* IE */
+   user-select: none; /* Standard syntax */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.part1
+{
+  width: 30% !important;
+}
+.part2
+{
+  width: calc(100% - 30%);
+}
+.vector
+{
+  position: absolute;
+  left: 110px;
+  top: -20px;
+}
+.vector1
+{
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+}
+.owl-theme .owl-dots
+{
+  position: absolute;
+  top: -30px;
+  left: 140px;
+}
+.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input
+{
+  padding: 5px 10px !important;  
+}
+.css-nxo287-MuiInputBase-input-MuiOutlinedInput-input
+{
+  padding: 6px 10px !important;  
+}
+
+.bordergradient
+{
+  border: 4px solid transparent;
+  height: 5px;
+  background-clip: padding-box;
+  height: 100px;
+  padding: 10px;
+  width: 500px; 
+  border-image: linear-gradient(to right , #CACED3 0%,#CACED3 100%,#CACED3 0% ); 
+  
+}
+.sign
+{
+  color: #1F2124 !important;
+  font-weight: 500;
+}
+.sign1
+{
+  color: #ABB1BA !important;
+  font-weight: 400;
+  font-size: 14px !important;
+  margin-bottom: 30px !important;
+  
+}
+.css-1rwt2y5-MuiButtonBase-root-MuiButton-root 
+{
+  text-transform: capitalize !important;
+  padding: 10px 24px !important;
+  border: 1px solid #DDE0E4 !important ;
+  border-radius:  6px !important;
+  color: #000000 !important;
+}
+.facebook
+{
+  text-transform: capitalize !important;
+  padding: 10px 24px !important;
+  border: 1px solid #DDE0E4 !important ;
+  border-radius:  6px !important;
+  color: #1877F2 !important;
+  width: 100%;
+  margin: auto 1rem;
+}
+.facebook1
+{
+  text-transform: capitalize !important;
+  padding: 10px 24px !important;
+  border: 1px solid #DDE0E4 !important ;
+  border-radius:  6px !important;
+  color: #000000 !important;
+  width: 100%;
+  margin: auto 1rem;
+}
+.apple
+{
+  text-transform: capitalize !important;
+  padding: 10px 24px !important;
+  border: 1px solid #DDE0E4 !important ;
+  border-radius:  6px !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  width: 100%;
+  margin: auto 1rem;
+}
+.create
+{
+  font-size: 14px !important;
+  font-weight: 200 !important;
+  color: #ABB1BA !important;
+  text-align: center;
+  padding: 20px 20px;
+}
+.create span
+{
+  color: #6D8F50 !important;
+  
+}
+
+
+.datePicker{
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.datePicker div{
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.datePicker input{
+  width:100% !important;
+  border: none !important;
+  outline: none !important;
+  color: #ABB1BA !important;
+  font-size: 11px !important;
+  font-weight: 200 !important;
+}
+
+.datePicker input::placeholder{
+  width:100% !important;
+  border: none !important;
+  outline: none !important;
+  color: #ABB1BA !important;
+  font-size: 11px !important;
+  font-weight: 200 !important;
+}
+
+.css-1wc848c-MuiFormHelperText-root{
+  color: #ABB1BA !important;
+  margin-left: 0 !important;
+}
+
+/* .signInInput input{
+  padding: 4rem auto;
+} */
+
+.Mui-disabled{
+  background-color: #EFF7E9 !important;
+  color:#C7D9B8 !important;
+}
+
+.css-1pnmrwp-MuiTypography-root{
+  font-size: 0.8rem !important;
+  margin:0 !important;
+  padding-left: 1rem !important;
+}
+
+
+.css-1o9s3wi-MuiInputBase-input-MuiOutlinedInput-input{
+  padding:0.6rem !important;
+}
+
+/* .css-1e0d89p-MuiButtonBase-root-MuiIconButton-root{
+  color: white !important;
+  background-color: transparent !important;
+} */
+
+.css-28p3iz-MuiPaper-root-MuiAlert-root{
+  background-color:  #6D8F50 !important;
+}
+
+.css-yz9k0d-MuiInputBase-input{
+  font-size: 0.8rem !important;
 }
