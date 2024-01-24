@@ -37,7 +37,6 @@ const DialPad = (props) => {
   // ]);
   const [incommingSession, setIncommingSession] = useState(null);
   const [outgoingSession, setOutgoingSession] = useState(null);
-  const [isMultipleCall, setIsMultipleCall] = useState(false);
 
   const muteHandler = () => {
     if (isMute) {
@@ -136,19 +135,6 @@ const DialPad = (props) => {
           setCallTime(1);
         });
 
-        newSession.on("ended", () => {
-          setActiveCalls((state) => {
-            return [...state.filter((c) => newSession._id !== c.call._id)];
-          });
-          if (activeCalls.length === 0) resetState();
-        });
-        newSession.on("failed", () => {
-          setActiveCalls((state) => {
-            return [...state.filter((c) => newSession._id !== c.call._id)];
-          });
-          if (activeCalls.length === 0) resetState();
-        });
-
         newSession.on("peerconnection", function (data) {
           data.peerconnection.addEventListener("addstream", function (e) {
             const remoteAudio = new window.Audio();
@@ -174,22 +160,9 @@ const DialPad = (props) => {
               }),
             ];
           });
-          
+
           setCallState("Connected");
           setCallTime(1);
-        });
-
-        newSession.on("ended", () => {
-          setActiveCalls((state) => {
-            return [...state.filter((c) => newSession._id !== c.call._id)];
-          });
-          if (activeCalls.length === 0) resetState();
-        });
-        newSession.on("failed", () => {
-          setActiveCalls((state) => {
-            return [...state.filter((c) => newSession._id !== c.call._id)];
-          });
-          if (activeCalls.length === 0) resetState();
         });
 
         newSession.connection.addEventListener("addstream", (event) => {
@@ -199,6 +172,21 @@ const DialPad = (props) => {
         });
       }
 
+      newSession.on("ended", () => {
+        setActiveCalls((state) => {
+          // Use the functional form of setState to ensure the latest state
+          const updatedState = state.filter((c) => newSession._id !== c.call._id);
+
+          // Log the updated state
+          console.log(updatedState, "after ac");
+
+          return updatedState;
+        });
+      });
+
+      newSession.on("failed", () => {
+        setActiveCalls((state) => state.filter((c) => newSession._id !== c.call._id));
+      });
       newSession.on("addstream", function (e) {
         const hiddenAudio = audio;
         hiddenAudio.src = window.URL.createObjectURL(e.stream);
@@ -267,7 +255,7 @@ const DialPad = (props) => {
 
   const endCall = () => {
     activeCalls.forEach((item) => {
-      if (!item.call.isEnded()) item.call.terminate();
+      item.call.terminate();
     });
     setActiveCalls([]);
 
@@ -284,16 +272,8 @@ const DialPad = (props) => {
   };
 
   const currentCallEnd = (item) => {
-    setActiveCalls((state) => {
-      return [
-        ...state.filter((c) => {
-          if (item.call._id === c.call._id) {
-            if (!item.call.isEnded()) item.call.terminate();
-            return false;
-          } else return true;
-        }),
-      ];
-    });
+    if (!item.call.isEnded()) item.call.terminate();
+    //setActiveCalls((state) => state.filter((c) => item.call._id !== c.call._id));
   };
 
   const currentCallHold = (item) => {
@@ -354,7 +334,7 @@ const DialPad = (props) => {
       outline: "none",
     },
   };
-  //dbsgn
+
   return (
     <Box>
       <Modal
@@ -404,7 +384,7 @@ const DialPad = (props) => {
                 muteHandler={muteHandler}
                 holdHandler={holdHandler}
                 setOpenContactList={setOpenContactList}
-                isMultipleCall={activeCalls.length>1}
+                isMultipleCall={activeCalls.length > 1}
                 activeCalls={activeCalls}
                 currentCallEnd={currentCallEnd}
                 currentCallHold={currentCallHold}
