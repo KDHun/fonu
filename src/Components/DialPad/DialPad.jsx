@@ -177,9 +177,11 @@ const DialPad = (props) => {
           // Use the functional form of setState to ensure the latest state
           const updatedState = state.filter((c) => newSession._id !== c.call._id);
 
-          // Log the updated state
-          console.log(updatedState, "after ac");
-
+          if(updatedState.length===0)
+          {
+            setCallState(null);
+            setCallTime(null);
+          }
           return updatedState;
         });
       });
