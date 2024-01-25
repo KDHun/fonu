@@ -40,11 +40,18 @@ const DialPad = (props) => {
 
   const muteHandler = () => {
     if (isMute) {
-      //session.unmute();
-
+      const updatedSessions = activeCalls.map(item=>{
+        item.call.unmute();
+        return item;
+      })
+      setActiveCalls(updatedSessions);
       setIsMute(false);
     } else {
-      //session.mute();
+      const updatedSessions = activeCalls.map(item=>{
+        item.call.mute();
+        return item;
+      })
+      setActiveCalls(updatedSessions);
 
       setIsMute(true);
     }
@@ -52,18 +59,18 @@ const DialPad = (props) => {
 
   const holdHandler = () => {
     if (isHold) {
-      // Unhold logic
-      setActiveCalls((state) => {
-        return state.map((item) => ({ ...item, hold: false }));
-      });
-      // Uncomment the following line if you have a session object
-      // session.unhold();
+      const updatedSessions = activeCalls.map(item=>{
+        item.call.unhold();
+        return {...item,hold:false};
+      })
+      setActiveCalls(updatedSessions);
       setIsHold(false);
     } else {
-      // Hold logic
-      setActiveCalls((state) => state.map((item) => ({ ...item, hold: true })));
-      // Uncomment the following line if you have a session object
-      // session.hold();
+      const updatedSessions = activeCalls.map(item=>{
+        item.call.hold();
+        return {...item,hold:true};
+      })
+      setActiveCalls(updatedSessions);
       setIsHold(true);
     }
   };
