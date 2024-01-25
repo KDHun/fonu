@@ -27,30 +27,22 @@ const DialPad = (props) => {
   const [isHold, setIsHold] = useState(false);
   const audio = new window.Audio();
   const [activeCalls, setActiveCalls] = useState([]);
-
-  // useState([
-  //   { call: null, hold: true, phonenumber: "+9106619122" },
-  //   { call: null, hold: false, phonenumber: "+9106619122" },
-  //   { call: null, hold: true, phonenumber: "+9106619122" },
-  //   { call: null, hold: true, phonenumber: "+9106619122" },
-  //   { call: null, hold: true, phonenumber: "+9106619122" },
-  // ]);
   const [incommingSession, setIncommingSession] = useState(null);
   const [outgoingSession, setOutgoingSession] = useState(null);
 
   const muteHandler = () => {
     if (isMute) {
-      const updatedSessions = activeCalls.map(item=>{
+      const updatedSessions = activeCalls.map((item) => {
         item.call.unmute();
         return item;
-      })
+      });
       setActiveCalls(updatedSessions);
       setIsMute(false);
     } else {
-      const updatedSessions = activeCalls.map(item=>{
+      const updatedSessions = activeCalls.map((item) => {
         item.call.mute();
         return item;
-      })
+      });
       setActiveCalls(updatedSessions);
 
       setIsMute(true);
@@ -59,21 +51,38 @@ const DialPad = (props) => {
 
   const holdHandler = () => {
     if (isHold) {
-      const updatedSessions = activeCalls.map(item=>{
+      if (activeCalls.length > 1) return;
+      const updatedSessions = activeCalls.map((item) => {
         item.call.unhold();
-        return {...item,hold:false};
-      })
+        return { ...item, hold: false };
+      });
       setActiveCalls(updatedSessions);
       setIsHold(false);
     } else {
-      const updatedSessions = activeCalls.map(item=>{
+      const updatedSessions = activeCalls.map((item) => {
         item.call.hold();
-        return {...item,hold:true};
-      })
+        return { ...item, hold: true };
+      });
       setActiveCalls(updatedSessions);
       setIsHold(true);
     }
   };
+
+  const swapcallsHandler = () => {
+    let index;
+    activeCalls.forEach((item, i) => {
+      if (!item.hold) index = i;
+    });
+    const updatedCalls = activeCalls;
+
+    updatedCalls[index].call.hold();
+    updatedCalls[index].hold = true;
+    updatedCalls[(index + 1) % updatedCalls.length].call.unhold();
+    updatedCalls[(index + 1) % updatedCalls.length].hold = false;
+
+    setActiveCalls(updatedCalls);
+  };
+
 
   useEffect(() => {
     if (callTime === null) return;
@@ -131,13 +140,19 @@ const DialPad = (props) => {
         newSession.on("accepted", () => {
           setActiveCalls((state) => {
             return [
-              { call: newSession, hold: false, phonenumber: phonenumber },
+              {
+                call: newSession,
+                hold: false,
+                phonenumber: newSession?._remote_identity?._uri?._user || "unknown",
+              },
               ...state.map((item) => {
                 item.call.hold();
                 return { ...item, hold: true };
               }),
             ];
           });
+          setIsHold(false);
+          setIsMute(false);
           setCallState("Connected");
           setCallTime(1);
         });
@@ -160,7 +175,11 @@ const DialPad = (props) => {
 
           setActiveCalls((state) => {
             return [
-              { call: newSession, hold: false, phonenumber: phonenumber },
+              {
+                call: newSession,
+                hold: false,
+                phonenumber: newSession?._remote_identity?._uri?._user || "unknown",
+              },
               ...state.map((item) => {
                 item.call.hold();
                 return { ...item, hold: true };
@@ -184,8 +203,7 @@ const DialPad = (props) => {
           // Use the functional form of setState to ensure the latest state
           const updatedState = state.filter((c) => newSession._id !== c.call._id);
 
-          if(updatedState.length===0)
-          {
+          if (updatedState.length === 0) {
             setCallState(null);
             setCallTime(null);
           }
@@ -397,6 +415,7 @@ const DialPad = (props) => {
                 activeCalls={activeCalls}
                 currentCallEnd={currentCallEnd}
                 currentCallHold={currentCallHold}
+                swapcallsHandler={swapcallsHandler}
               />
             )}
             {callState === "calling" && (

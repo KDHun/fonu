@@ -16,8 +16,15 @@ import ActiveTransferIcon from "../../Images/ActiveTransfer.png";
 import KeyPad from "./KeyPad";
 import { useState } from "react";
 import CallEndIcon from "@mui/icons-material/CallEnd";
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
+import SwapCallsIcon from "@mui/icons-material/SwapCalls";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+import SyncAltIcon from "@mui/icons-material/SyncAlt";
+import DialpadIcon from "@mui/icons-material/Dialpad";
+import AddIcon from "@mui/icons-material/Add";
+import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 const CallingScreen = (props) => {
   const {
     onEndCall,
@@ -31,7 +38,8 @@ const CallingScreen = (props) => {
     setOpenContactList,
     activeCalls,
     currentCallEnd,
-    currentCallHold
+    currentCallHold,
+    swapcallsHandler,
   } = props;
 
   const [isRecord, setIsRecord] = useState(false);
@@ -81,24 +89,39 @@ const CallingScreen = (props) => {
                     margin='0.2rem'
                     padding='0.3rem'
                     borderRadius='0.2rem'>
-                    <Box sx={{color:"white"}}>
+                    <Box sx={{ color: "white" }}>
                       <Typography>Karabhai Hun</Typography>
                       <Typography>{item.phonenumber}</Typography>
                     </Box>
                     <Box>
                       <ButtonBase
-                      onClick={()=>{currentCallHold(item)}}
-                      sx={{
-                        margin:"0.5rem"
-                      }}>
-                        {item.hold?<PlayArrowIcon sx={{color:"white"}}/>:<PauseIcon sx={{color:"white"}}/>}
+                        onClick={() => {
+                          currentCallHold(item);
+                        }}
+                        sx={{
+                          margin: "0.5rem",
+                        }}>
+                        {item.hold ? (
+                          <PlayArrowIcon sx={{ color: "white" }} />
+                        ) : (
+                          <PauseIcon sx={{ color: "white" }} />
+                        )}
                       </ButtonBase>
                       <ButtonBase
-                       onClick={()=>{currentCallEnd(item)}}
-                      sx={{
-                        margin:"0.5rem"
-                      }}>
-                        <CallEndIcon sx={{  backgroundColor: "red", color:"white", padding:"0.2rem 0.5rem", borderRadius:"0.5rem"}} />
+                        onClick={() => {
+                          currentCallEnd(item);
+                        }}
+                        sx={{
+                          margin: "0.5rem",
+                        }}>
+                        <CallEndIcon
+                          sx={{
+                            backgroundColor: "red",
+                            color: "white",
+                            padding: "0.2rem 0.5rem",
+                            borderRadius: "0.5rem",
+                          }}
+                        />
                       </ButtonBase>
                     </Box>
                   </Box>
@@ -116,58 +139,138 @@ const CallingScreen = (props) => {
                 padding: "3rem",
               }}>
               <Grid item xs={4}>
-                <Stack sx={{ "&:hover": { cursor: "pointer" } }}>
-                  <img src={isMute ? UnMuteIcon : MuteIcon} alt='' onClick={muteHandler} />{" "}
+                <Stack>
+                  <ButtonBase
+                    sx={{
+                      borderRadius: "50%",
+                      border: isMute ? "1px solid #4F722D" : "1px solid #DDE0E4",
+                      backgroundColor: "#F9FAFB",
+                      padding: "1rem",
+                    }}
+                    onClick={muteHandler}>
+                    {isMute ? (
+                      <MicOffIcon sx={{ color: "#4F722D", fontSize: 32 }} />
+                    ) : (
+                      <MicIcon sx={{ color: "#1F2124", fontSize: 32 }} />
+                    )}
+                  </ButtonBase>
                   <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
-                    {isMute ? "Unmute" : "Mute"}
+                    {isMute
+                      ? isMultipleCall
+                        ? "Unmute all"
+                        : "Unmute"
+                      : isMultipleCall
+                      ? "Mute all"
+                      : "Mute"}
                   </Typography>
                 </Stack>
               </Grid>
+              {activeCalls.length === 2 && (
+                <Grid item xs={4}>
+                  <Stack>
+                    <ButtonBase
+                      sx={{
+                        borderRadius: "50%",
+                        border: "1px solid #DDE0E4",
+                        backgroundColor: "#F9FAFB",
+                        padding: "1rem",
+                      }}
+                      onClick={swapcallsHandler}>
+                      <SwapCallsIcon sx={{ color: "#1F2124", fontSize: 32 }} />
+                    </ButtonBase>
+                    <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Swap</Typography>
+                  </Stack>
+                </Grid>
+              )}
               <Grid item xs={4}>
-                <Stack sx={{ "&:hover": { cursor: "pointer" } }}>
-                  <img
-                    src={false ? ActiveTransferIcon : TransferIcon}
-                    alt=''
-                    //onClick={() => setIsTransfer((state) => !state)}
-                  />{" "}
+                <Stack>
+                  <ButtonBase
+                    sx={{
+                      borderRadius: "50%",
+                      border: "1px solid #DDE0E4",
+                      backgroundColor: "#F9FAFB",
+                      padding: "1rem",
+                    }}>
+                    <SyncAltIcon sx={{ color: "#1F2124", fontSize: 32 }} />
+                  </ButtonBase>
                   <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Transfer</Typography>
                 </Stack>
               </Grid>
               <Grid item xs={4}>
-                <Stack sx={{ "&:hover": { cursor: "pointer" } }}>
-                  <img
-                    src={isKeyPad ? ActiveKeyPadIcon : KeyPadIcon}
-                    alt=''
-                    onClick={() => setIsKeyPad((state) => !state)}
-                  />{" "}
+                <Stack>
+                  <ButtonBase
+                    sx={{
+                      borderRadius: "50%",
+                      border: isKeyPad ? "1px solid #4F722D" : "1px solid #DDE0E4",
+                      backgroundColor: "#F9FAFB",
+                      padding: "1rem",
+                    }}
+                    onClick={() => setIsKeyPad((state) => !state)}>
+                    <DialpadIcon sx={{ color: "#1F2124", fontSize: 32 }} />
+                  </ButtonBase>
+
                   <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Keypad</Typography>
                 </Stack>
               </Grid>
               <Grid item xs={4}>
-                <Stack sx={{ "&:hover": { cursor: "pointer" } }}>
-                  <img src={isHold ? UnHoldIcon : HoldIcon} alt='' onClick={holdHandler} />{" "}
+                <Stack>
+                  <ButtonBase
+                    disabled={isHold && isMultipleCall}
+                    sx={{
+                      borderRadius: "50%",
+                      border: isHold ? "1px solid #4F722D" : "1px solid #DDE0E4",
+                      backgroundColor: "#F9FAFB",
+                      padding: "1rem",
+                    }}
+                    onClick={holdHandler}>
+                    <PauseIcon sx={{ color: isHold ? "#4F722D" : "#1F2124", fontSize: 32 }} />
+                  </ButtonBase>
                   <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
-                    {isHold ? "Unhold" : "Hold"}
+                    {isHold
+                      ? isMultipleCall
+                        ? ""
+                        : "Unhold"
+                      : isMultipleCall
+                      ? "Hold all"
+                      : "Hold"}
                   </Typography>
                 </Stack>
               </Grid>
+              {!isMultipleCall && (
+                <Grid item xs={4}>
+                  <Stack>
+                    <ButtonBase
+                      disabled={isHold && isMultipleCall}
+                      sx={{
+                        borderRadius: "50%",
+                        border: isRecord ? "1px solid #4F722D" : "1px solid #DDE0E4",
+                        backgroundColor: "#F9FAFB",
+                        padding: "1rem",
+                      }}
+                      onClick={() => setIsRecord((state) => !state)}>
+                      <RadioButtonCheckedIcon
+                        sx={{ color: isRecord ? "#4F722D" : "#1F2124", fontSize: 32 }}
+                      />
+                    </ButtonBase>
+
+                    <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Record</Typography>
+                  </Stack>
+                </Grid>
+              )}
               <Grid item xs={4}>
-                <Stack sx={{ "&:hover": { cursor: "pointer" } }}>
-                  <img
-                    src={isRecord ? ActiveRecordIcon : RecordIcon}
-                    alt=''
-                    onClick={() => setIsRecord((state) => !state)}
-                  />{" "}
-                  <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Record</Typography>
-                </Stack>
-              </Grid>
-              <Grid item xs={4}>
-                <Stack sx={{ "&:hover": { cursor: "pointer" } }}>
-                  <img
-                    src={false ? ActiveAddCallIcon : AddCallIcon}
-                    alt=''
-                    onClick={() => setOpenContactList(true)}
-                  />{" "}
+                <Stack>
+                  <ButtonBase
+                    disabled={isHold && isMultipleCall}
+                    sx={{
+                      borderRadius: "50%",
+                      border: "1px solid #DDE0E4",
+                      backgroundColor: "#F9FAFB",
+                      padding: "1rem",
+                    }}
+                    onClick={() => setOpenContactList(true)}>
+                    <AddIcon sx={{ color: "#1F2124", fontSize: 32 }} />
+                  </ButtonBase>
+
                   <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>Add</Typography>
                 </Stack>
               </Grid>
