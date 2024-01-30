@@ -18,19 +18,21 @@ import {
 const KeyPad = (props) => {
   const phonenumber = useSelector((state) => state.phonenumber.phonenumber);
   const dispatch = useDispatch();
- 
-  const { onHide, makeCall } = props;
+
+  const { onHide, makeCall, sendDTMFHandler, callState } = props;
 
   const InputHandler = (data) => {
     if (data === "delete") {
       dispatch(deletePhonenumberChar());
-    } else if (phonenumber.length < 10) {
-      dispatch(addPhonenumberChar(data));
+      return;
     }
+    if (callState === "Connected") {
+      sendDTMFHandler(data);
+    }
+    dispatch(addPhonenumberChar(data));
   };
   const handleChange = (event) => {
     let data = event.target.value.replace(/[^0-9]/g, "");
-    if (data.length > 10) data = data.slice(0, 9);
     dispatch(setPhonenumber(data));
   };
   return (
@@ -241,7 +243,7 @@ const KeyPad = (props) => {
             </Box>
           </Grid>
           <Grid item xs={4}>
-            {" "}
+            {/* {" "}
             <Box
               sx={{
                 display: "flex",
@@ -251,7 +253,7 @@ const KeyPad = (props) => {
               }}
               onClick={() => InputHandler("+")}>
               <Typography sx={{ fontSize: 30 }}>+</Typography>
-            </Box>
+            </Box> */}
           </Grid>
           <Grid item xs={4}>
             {" "}
@@ -294,7 +296,7 @@ const KeyPad = (props) => {
             textAlign: "center",
             justifyContent: "center",
           }}>
-          { (
+          {callState === "Connected" && (
             <Typography
               sx={{ margin: "auto", "&:hover": { cursor: "pointer" } }}
               onClick={() => onHide(false)}>

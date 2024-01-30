@@ -9,7 +9,7 @@ import HashIcon from "../Images/Hash.png";
 
 const HomeComponent = (props) => {
     return (
-        <Box backgroundColor='black' padding='2rem 5rem'>
+        <Box backgroundColor='black' sx={{ padding: { xs: "2rem 2rem", md: "2rem 5rem" } }}>
             <Box display='flex' justifyContent='space-between' alignItems='center'>
                 <Typography color='white' fontWeight='500' fontSize='1rem'>
                     Welcome,Deanna Curtis

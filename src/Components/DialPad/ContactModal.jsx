@@ -43,15 +43,16 @@ const ContactModal = (props) => {
   }, []);
 
   return (
-    <Box sx={{backgroundColor:'#FFFFFE', width:"25vw", padding:"1rem", borderRadius:'0.3rem'}}>
+    <Box
+      sx={{ backgroundColor: "#FFFFFE", width: "25vw", padding: "1rem", borderRadius: "0.3rem" }}>
       <Box display='flex' justifyContent='space-between' alignItems='center'>
-        <Typography sx={{ fontWeight: "600" }}>{props.title}</Typography>
+        <Typography sx={{ fontWeight: "600" }}>{props.buttonText==="Call"?"Add Member":"Transfer Call"}</Typography>
         <Tooltip title='Close' placement='top'>
           <CloseIcon
             sx={{ color: "#CACED3", "&:hover": { cursor: "pointer" } }}
             onClick={() => {
               setSearch("");
-              props.setOpenContactList(false);
+              props.setContectData(state=>{return{...state,isOpen:false}});
             }}
           />
         </Tooltip>
@@ -145,16 +146,24 @@ const ContactModal = (props) => {
       <Box>
         <Button
           variant='contained'
-          sx={{ backgroundColor: "#4F772D", '&:hover':{
-            backgroundColor:'#4F772D'
-          } }}
+          sx={{
+            backgroundColor: "#4F772D",
+            "&:hover": {
+              backgroundColor: "#4F772D",
+            },
+          }}
           onClick={() => {
+            if (!selectedValue) return;
             setSearch("");
-            props.addCallHanddler(selectedValue);
-            props.setOpenContactList(false);
+            if (props.buttonText === "Call") {
+              props.addCallHandler(selectedValue);
+            } else {
+              props.transferCallHandler(selectedValue);
+            }
+            props.setContectData(state=>{return{...state,isOpen:false}});
           }}
           fullWidth>
-          {props.btnText}
+          {props.buttonText}
         </Button>
       </Box>
     </Box>

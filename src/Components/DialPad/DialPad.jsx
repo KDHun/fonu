@@ -1,27 +1,25 @@
 import { Box, Modal, Paper, Tooltip } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import DialScreen from "./DialScreen";
 
 import JsSIP from "jssip";
 import { useSelector, useDispatch } from "react-redux";
-import CallScreen from "./CallScreen";
+
 import CallingScreen from "./CallingScreen";
 import IncommingMinimizeScreen from "./IncommingMinimizeScreen";
 import MinimizeCallScreen from "./MinimizeCallScreen";
 import ContactModal from "./ContactModal";
 import { setPhonenumber } from "../../store/phonenumberSlice";
+
 const DialPad = (props) => {
   const { open, setOpen } = props;
-  const [openContactList, setOpenContactList] = useState(false);
+
   const [isMiniOpen, setIsMiniOpen] = useState(false);
   const phonenumber = useSelector((state) => state.phonenumber.phonenumber);
   const dispatch = useDispatch();
   const [callState, setCallState] = useState(null);
-  //useState("Connected");
   const [displayName, setDisplayName] = useState("");
   const [ua, setUA] = useState(null);
-  //const [session, setSession] = useState(null);
   const [callTime, setCallTime] = useState(null);
   const [isMute, setIsMute] = useState(false);
   const [isHold, setIsHold] = useState(false);
@@ -29,6 +27,13 @@ const DialPad = (props) => {
   const [activeCalls, setActiveCalls] = useState([]);
   const [incommingSession, setIncommingSession] = useState(null);
   const [outgoingSession, setOutgoingSession] = useState(null);
+  const [ongoingCall, setOngoingCall] = useState(null);
+  const [contectData, setContectData] = useState({
+    isOpen: false,
+    buttonText: "",
+  });
+  const isCallScreen = useRef(false);
+  console.log(activeCalls, "refer");
 
   const muteHandler = () => {
     if (isMute) {
@@ -70,11 +75,15 @@ const DialPad = (props) => {
 
   const swapcallsHandler = () => {
     let index;
-    activeCalls.forEach((item, i) => {
-      if (!item.hold) index = i;
+    activeCalls.every((item, i) => {
+      if (!item.hold) {
+        index = i;
+        return false;
+      }
+      return true;
     });
+    if (index === undefined || index === null) return;
     const updatedCalls = activeCalls;
-
     updatedCalls[index].call.hold();
     updatedCalls[index].hold = true;
     updatedCalls[(index + 1) % updatedCalls.length].call.unhold();
@@ -82,7 +91,6 @@ const DialPad = (props) => {
 
     setActiveCalls(updatedCalls);
   };
-
 
   useEffect(() => {
     if (callTime === null) return;
@@ -95,6 +103,15 @@ const DialPad = (props) => {
   }, [callTime]);
 
   useEffect(() => {
+    if (activeCalls.length === 0) {
+      setCallState(null);
+      setCallTime(null);
+      setIsMiniOpen(false);
+      setOngoingCall(null);
+    }
+  }, [activeCalls]);
+
+  useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user"));
     const socket = new JsSIP.WebSocketInterface("wss://callapi.efone.ca:7443");
     JsSIP.debug.enable("JsSIP:*");
@@ -105,6 +122,7 @@ const DialPad = (props) => {
       register: true,
       session_timers: false,
       realm: "*",
+      //display_name: userData.name,
     };
 
     const userAgent = new JsSIP.UA(configration);
@@ -113,122 +131,148 @@ const DialPad = (props) => {
 
     userAgent.start();
 
-    userAgent.on("connected", function (e) {
-      console.log("user connected", e);
-    });
-    userAgent.on("disconnected", function (e) {
-      console.log("user disconnected", e);
-    });
+    const eventHandlers = {
+      connected: (e) => {
+        console.log("user connected", e);
+      },
+      disconnected: (e) => {
+        console.log("user disconnected", e);
+      },
+      registrationFailed: (e) => {
+        console.log("user registrationFailed", e);
+      },
+      newRTCSession: (data) => {
+        console.log("rct sessiton", data);
+        const newSession = data.session;
+        if (newSession._direction === "incoming") {
+          setCallState("incomming");
+          setIncommingSession(newSession);
+          if (!open) setIsMiniOpen(true);
+          setDisplayName(data.session.remote_identity._display_name || "Unknown");
 
-    userAgent.on("registrationFailed", function (e) {
-      console.log("user registrationFailed", e);
-    });
+          newSession.on("accepted", () => {
+            setOngoingCall({
+              call: newSession,
+              hold: false,
+              phonenumber: newSession?._remote_identity?._uri?._user,
+              name: newSession?._remote_identity?._display_name || "Unknown",
+            });
 
-    userAgent.on("newRTCSession", (data) => {
-      console.log("rct sessiton", data);
-      const newSession = data.session;
-
-      //setDisplayName(data.session.remote_identity.display_name || "Unknown");
-
-      if (newSession._direction === "incoming") {
-        setIncommingSession(newSession);
-        if (!open) setIsMiniOpen(true);
-        setCallState("incomming");
-
-        setDisplayName(data.session.remote_identity.display_name || "Unknown");
-
-        newSession.on("accepted", () => {
-          setActiveCalls((state) => {
-            return [
-              {
-                call: newSession,
-                hold: false,
-                phonenumber: newSession?._remote_identity?._uri?._user || "unknown",
-              },
-              ...state.map((item) => {
-                item.call.hold();
-                return { ...item, hold: true };
-              }),
-            ];
-          });
-          setIsHold(false);
-          setIsMute(false);
-          setCallState("Connected");
-          setCallTime(1);
-        });
-
-        newSession.on("peerconnection", function (data) {
-          data.peerconnection.addEventListener("addstream", function (e) {
-            const remoteAudio = new window.Audio();
-            remoteAudio.srcObject = e.stream;
-            remoteAudio.play();
-          });
-        });
-      } else if (newSession._direction === "outgoing") {
-        setOutgoingSession(newSession);
-        setCallState("outgoing");
-        newSession.on("progress", () => {
-          setCallState("calling");
-        });
-        newSession.on("accepted", () => {
-          console.log("accept");
-
-          setActiveCalls((state) => {
-            return [
-              {
-                call: newSession,
-                hold: false,
-                phonenumber: newSession?._remote_identity?._uri?._user || "unknown",
-              },
-              ...state.map((item) => {
-                item.call.hold();
-                return { ...item, hold: true };
-              }),
-            ];
+            setActiveCalls((state) => {
+              return [
+                {
+                  call: newSession,
+                  hold: false,
+                  phonenumber: newSession?._remote_identity?._uri?._user,
+                  name: newSession?._remote_identity?._display_name || "Unknown",
+                },
+                ...state.map((item) => {
+                  item.call.hold();
+                  return { ...item, hold: true };
+                }),
+              ];
+            });
+            setIsHold(false);
+            setIsMute(false);
+            setCallState("Connected");
+            setCallTime(1);
           });
 
-          setCallState("Connected");
-          setCallTime(1);
-        });
+          newSession.on("peerconnection", function (data) {
+            data.peerconnection.addEventListener("addstream", function (e) {
+              const remoteAudio = new window.Audio();
+              remoteAudio.srcObject = e.stream;
+              remoteAudio.play();
+            });
+          });
+        } else if (newSession._direction === "outgoing") {
+          setOutgoingSession(newSession);
+          setCallState("outgoing");
+          newSession.on("progress", () => {
+            setCallState("calling");
+          });
+          newSession.on("accepted", () => {
+            console.log("accept");
+            setOngoingCall({
+              call: newSession,
+              hold: false,
+              phonenumber: newSession?._remote_identity?._uri?._user,
+              name: newSession?._remote_identity?._display_name || "Unknown",
+            });
 
-        newSession.connection.addEventListener("addstream", (event) => {
-          const audio = document.createElement("audio");
-          audio.srcObject = event.stream;
-          audio.play();
-        });
-      }
+            setActiveCalls((state) => {
+              return [
+                {
+                  call: newSession,
+                  hold: false,
+                  phonenumber: newSession?._remote_identity?._uri?._user,
+                  name: newSession?._remote_identity?._display_name || "Unknown",
+                },
+                ...state.map((item) => {
+                  item.call.hold();
+                  return { ...item, hold: true };
+                }),
+              ];
+            });
 
-      newSession.on("ended", () => {
-        setActiveCalls((state) => {
-          // Use the functional form of setState to ensure the latest state
-          const updatedState = state.filter((c) => newSession._id !== c.call._id);
+            setCallState("Connected");
+            setCallTime(1);
+          });
 
-          if (updatedState.length === 0) {
-            setCallState(null);
-            setCallTime(null);
+          newSession.connection.addEventListener("addstream", (event) => {
+            const audio = document.createElement("audio");
+            audio.srcObject = event.stream;
+            audio.play();
+          });
+        }
+
+        newSession.on("ended", () => {
+
+          const updatedState = activeCalls.filter((c) => newSession._id !== c.call._id);
+
+          if (newSession._id === ongoingCall?.call?._id) {
+            setOngoingCall(updatedState[0]);
           }
-          return updatedState;
+          setActiveCalls((state) => {
+            return state.filter((c) => newSession._id !== c.call._id);
+          });
         });
-      });
 
-      newSession.on("failed", () => {
-        setActiveCalls((state) => state.filter((c) => newSession._id !== c.call._id));
-      });
-      newSession.on("addstream", function (e) {
-        const hiddenAudio = audio;
-        hiddenAudio.src = window.URL.createObjectURL(e.stream);
-        hiddenAudio.play();
-      });
+        newSession.on("failed", () => {
+          const updatedState = activeCalls.filter((c) => newSession._id !== c.call._id);
+
+          if (newSession._id === ongoingCall?.call?._id) {
+            setOngoingCall(updatedState[0]);
+          }
+          setActiveCalls((state) => {
+            return state.filter((c) => newSession._id !== c.call._id);
+          });
+        });
+        newSession.on("addstream", function (e) {
+          const hiddenAudio = audio;
+          hiddenAudio.src = window.URL.createObjectURL(e.stream);
+          hiddenAudio.play();
+        });
+      },
+    };
+
+    Object.keys(eventHandlers).forEach((event) => {
+      userAgent.on(event, eventHandlers[event]);
     });
+
     setUA(userAgent);
 
     return () => {
+      Object.keys(eventHandlers).forEach((event) => {
+        userAgent.off(event, eventHandlers[event]);
+      });
       userAgent.stop();
     };
   }, []);
 
   const makeCall = (number = phonenumber) => {
     if (!number) return;
+    isCallScreen.current = true;
     setCallState("calling");
     if (ua) {
       const options = {
@@ -252,7 +296,6 @@ const DialPad = (props) => {
   };
 
   const acceptCall = () => {
-    debugger;
     console.log("call answered");
     incommingSession.answer({
       mediaConstraints: { audio: true, video: false },
@@ -267,65 +310,84 @@ const DialPad = (props) => {
         rtcpMuxPolicy: "negotiate",
       },
     });
-    setCallTime(1);
+    setCallTime(0);
   };
 
   const rejectCall = () => {
     if (incommingSession) {
-      incommingSession.terminate();
-      setCallState("Call Rejected");
+      try {
+        incommingSession.terminate();
+      } catch (error) {
+        console.log("Error in terminating Incomming call", error);
+      }
       setIncommingSession(null);
       setCallTime(null);
-      setIsMiniOpen(false);
+      if (activeCalls.length === 0) {
+        setCallState(null);
+        setIsMiniOpen(false);
+      } else {
+        setCallState("Connected");
+      }
     }
   };
 
   const endCall = () => {
     activeCalls.forEach((item) => {
-      item.call.terminate();
+      try {
+        item.call.terminate();
+      } catch (error) {
+        console.log("Error in terminating call", error);
+      }
     });
     setActiveCalls([]);
-
+    setOngoingCall(null);
     setCallState(null);
     setOpen(false);
     setCallTime(null);
     setIsMiniOpen(false);
   };
 
-  const addCallHanddler = (user) => {
+  const addCallHandler = (user) => {
     console.log(user);
     dispatch(setPhonenumber(user.phone.substring(3)));
     makeCall(user.phone.substring(3));
   };
 
   const currentCallEnd = (item) => {
-    if (!item.call.isEnded()) item.call.terminate();
-    //setActiveCalls((state) => state.filter((c) => item.call._id !== c.call._id));
+    try {
+      if (!item.call.isEnded()) item.call.terminate();
+    } catch (err) {
+      console.log("Error in terminating call", err);
+    }
   };
 
   const currentCallHold = (item) => {
-    setActiveCalls((state) => {
-      if (item.call.isOnHold().local) {
-        return state.map((callItem) => {
-          if (item.call._id === callItem.call._id) {
-            callItem.call.unhold();
-            return { ...callItem, hold: false };
-          } else {
-            callItem.call.hold();
-            return { ...callItem, hold: true };
-          }
-        });
+    const updatedState = activeCalls.map((callItem) => {
+      if (item.call._id === callItem.call._id) {
+        const isOnHold = item.call.isOnHold().local;
+        if (!isOnHold) {
+          callItem.call.hold();
+        } else {
+          callItem.call.unhold();
+        }
+        return { ...callItem, hold: !isOnHold };
       } else {
-        return state.map((callItem) => {
-          if (item.call._id === callItem.call._id) {
-            callItem.call.hold();
-            return { ...callItem, hold: true };
-          } else {
-            return callItem;
-          }
-        });
+        const isOnHold = callItem.call.isOnHold().local;
+        if (!isOnHold) {
+          callItem.call.hold();
+        }
+        return { ...callItem, hold: true };
       }
     });
+    setActiveCalls(updatedState);
+
+    // setOngoingCall((state) => {
+    //   if (item.call._id === state.call._id) {
+    //     return { ...state, hold: !state.hold };
+    //   } else {
+    //     return state;
+    //   }
+    // });
   };
 
   const fullScreenCalling = () => {
@@ -333,24 +395,51 @@ const DialPad = (props) => {
     setIsMiniOpen(false);
   };
 
-  const resetState = () => {
-    setCallState(null);
-    setDisplayName("");
+  const transferCallHandler = (user) => {
+    console.log(activeCalls, "refer");
+    console.log(ongoingCall, "refer2");
+    if (ongoingCall && user.phone) {
+      try {
+        ongoingCall.call.refer(user.phone);
+        const updatedState = activeCalls.filter((c) => ongoingCall.call._id !== c.call._id);
+        if (updatedState.length === 0) {
+          setCallState(null);
+          setCallTime(null);
+          setIsMiniOpen(false);
+          setOngoingCall(null);
+        } else {
+          setOngoingCall(updatedState[0]);
+          setActiveCalls(updatedState);
+        }
+      } catch (error) {
+        console.error("Error during call transfer:", error);
+      }
+    }
+    console.log(ongoingCall, "refer3");
+    console.log(activeCalls, "refer1");
   };
 
+  const sendDTMFHandler = (phoneNumber) => {
+    const activeCallSession = activeCalls.find((call) => !call.hold)?.call;
+    if (activeCallSession) {
+      activeCallSession.sendDTMF(phoneNumber);
+    }
+  };
   const style = {
     position: "absolute",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
     width:
-      // isTransfer || isAddCall ?
-      350,
+      activeCalls.length > 1
+        ? 700
+        : // isTransfer || isAddCall ?
+          350,
     // : 350
     height:
       // isTransfer || isAddCall ?
       //"75vh":
-      "89vh",
+      "90vh",
     bgcolor: "background.paper",
     boxShadow: 24,
     p: 2,
@@ -365,21 +454,28 @@ const DialPad = (props) => {
   return (
     <Box>
       <Modal
+        open={contectData.isOpen}
+        onClose={() =>
+          setContectData((state) => {
+            return { ...state, isOpen: false };
+          })
+        }>
+        <Box display='flex' justifyContent='center' alignItems='center' height='100vh'>
+          <ContactModal
+            {...contectData}
+            setContectData={setContectData}
+            transferCallHandler={transferCallHandler}
+            addCallHandler={addCallHandler}
+          />
+        </Box>
+      </Modal>
+      <Modal
         open={open}
         onClose={() => setOpen(false)}
         aria-labelledby='modal-modal-title'
         aria-describedby='modal-modal-description'>
         <Paper elevation={3} sx={style}>
-          <Modal open={openContactList} onClose={() => setOpenContactList(false)}>
-            <Box display='flex' justifyContent='center' alignItems='center' height='100vh'>
-              <ContactModal
-                btnText='call'
-                addCallHanddler={addCallHanddler}
-                setOpenContactList={setOpenContactList}
-              />
-            </Box>
-          </Modal>
-          <Box>
+          <Box height='100%'>
             <Box sx={{ textAlign: "end" }}>
               <Tooltip title='Minimize' placement='top'>
                 <CloseIcon
@@ -392,39 +488,29 @@ const DialPad = (props) => {
               </Tooltip>
             </Box>
 
-            {!callState && <DialScreen makeCall={makeCall} />}
-            {callState === "incomming" && (
-              <CallScreen
-                acceptCall={acceptCall}
-                rejectCall={rejectCall}
-                displayName={displayName}
-              />
-            )}
-
-            {callState === "Connected" && (
-              <CallingScreen
-                callTime={callTime}
-                onEndCall={endCall}
-                displayName={displayName}
-                isMute={isMute}
-                isHold={isHold}
-                muteHandler={muteHandler}
-                holdHandler={holdHandler}
-                setOpenContactList={setOpenContactList}
-                isMultipleCall={activeCalls.length > 1}
-                activeCalls={activeCalls}
-                currentCallEnd={currentCallEnd}
-                currentCallHold={currentCallHold}
-                swapcallsHandler={swapcallsHandler}
-              />
-            )}
-            {callState === "calling" && (
-              <CallScreen type='outgoing' rejectCall={endCall} displayName={displayName} />
-            )}
+            <CallingScreen
+              acceptCall={acceptCall}
+              rejectCall={rejectCall}
+              sendDTMFHandler={sendDTMFHandler}
+              callState={callState}
+              makeCall={makeCall}
+              callTime={callTime}
+              onEndCall={endCall}
+              displayName={displayName}
+              isMute={isMute}
+              isHold={isHold}
+              muteHandler={muteHandler}
+              holdHandler={holdHandler}
+              isMultipleCall={activeCalls.length > 1}
+              activeCalls={activeCalls}
+              currentCallEnd={currentCallEnd}
+              currentCallHold={currentCallHold}
+              swapcallsHandler={swapcallsHandler}
+              setContectData={setContectData}
+            />
           </Box>
         </Paper>
       </Modal>
-
       <Box sx={{ position: "fixed", bottom: 0, right: 0 }}>
         {isMiniOpen && callState === "incomming" && (
           <IncommingMinimizeScreen
@@ -435,10 +521,7 @@ const DialPad = (props) => {
               rejectCall();
               setIsMiniOpen(false);
             }}
-            openFullScreen={() => {
-              setIsMiniOpen(false);
-              setOpen(true);
-            }}
+            openFullScreen={fullScreenCalling}
           />
         )}
         {isMiniOpen && callState !== "incomming" && (
@@ -451,6 +534,8 @@ const DialPad = (props) => {
             isHold={isHold}
             muteHandler={muteHandler}
             holdHandler={holdHandler}
+            ongoingCall={ongoingCall}
+            setContectData={setContectData}
           />
         )}
       </Box>

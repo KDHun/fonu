@@ -56,6 +56,7 @@ function Navbar(props) {
   };
   const Logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/");
   };
   return (
@@ -166,7 +167,7 @@ function Navbar(props) {
             ))}
           </Box>
 
-          <Box display='flex' justifyContent='center' alignItems='center' gap='1rem'>
+          <Box display='flex' justifyContent='center' alignItems='center' gap='1rem' >
             <Button
               variant='contained'
               sx={{
@@ -174,10 +175,11 @@ function Navbar(props) {
                 borderRadius: "50px",
                 gap: "10px",
                 padding: "0.3rem 1rem",
+                whiteSpace:"break-spaces"
               }}
               onClick={props.onDialPadClick}>
               <img src={DialDots} alt=':::' style={{ scale: "0.8" }} />
-              <Typography color='black' fontSize='0.9rem'>
+              <Typography color='black' fontSize='0.9rem' whiteSpace="nowrap">
                 Dial pad
               </Typography>
             </Button>

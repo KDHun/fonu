@@ -10,7 +10,7 @@ import PersonAddAltRoundedIcon from "@mui/icons-material/PersonAddAltRounded";
 import LaunchIcon from "@mui/icons-material/Launch";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import CallEndIcon from "@mui/icons-material/CallEnd";
-
+import SyncAltIcon from '@mui/icons-material/SyncAlt';
 const TimeFormat = (time) => {
   let minutes = Math.floor(time / 60);
   let seconds = time % 60;
@@ -35,6 +35,8 @@ const MinimizeCallScreen = (props) => {
     holdHandler,
     isHold,
     isMute,
+    ongoingCall,
+    setContectData
   } = props;
 
   return (
@@ -53,18 +55,14 @@ const MinimizeCallScreen = (props) => {
           alignItems: "start",
         }}>
         <Stack>
-          <Typography sx={{ fontSize: "0.7rem" }}>{displayName}</Typography>
+          <Typography sx={{ fontSize: "0.7rem" }}>{ongoingCall?.call?._remote_identity?._uri?._user||"Unknown"}</Typography>
           <Typography sx={{ fontSize: "0.7rem", color: "#616A75" }}>
             Ongoing call… {TimeFormat(callTime)}
           </Typography>
         </Stack>
         <Box sx={{ "&:hover": { cursor: "pointer" } }}>
           <Tooltip title='Full Screen' placement='top'>
-            <LaunchIcon
-              onClick={() => {
-                FullScreenCalling(callTime);
-              }}
-            />
+            <LaunchIcon onClick={FullScreenCalling} />
           </Tooltip>
         </Box>
       </Box>
@@ -74,11 +72,10 @@ const MinimizeCallScreen = (props) => {
           src='https://mui.com/static/images/avatar/1.jpg'
           sx={{ width: 24, height: 24 }}
         />
-        <Typography sx={{ fontSize: "0.7rem" }}>{displayName}</Typography>
+        <Typography sx={{ fontSize: "0.7rem" }}>{ongoingCall?.call?.remote_identity?._display_name || "Unknown"}</Typography>
       </Box>
       <Grid container spacing={2}>
         <Grid item>
-       
           <ButtonBase onClick={muteHandler}>
             {isMute ? (
               <MicOffIcon
@@ -104,30 +101,29 @@ const MinimizeCallScreen = (props) => {
           </ButtonBase>
         </Grid>
         <Grid item>
-            <ButtonBase onClick={holdHandler}>
-              {isHold ? (
-                <PauseCircleIcon
-                  sx={{
-                    fontSize: 30,
-                    color: "white",
-                    backgroundColor: "#1F2124",
-                    padding: "0.5rem",
-                    borderRadius: "50%",
-                  }}
-                />
-              ) : (
-                <PauseCircleOutlineOutlinedIcon
-                  sx={{
-                    fontSize: 30,
-                    color: "#C0C0C0",
-                    backgroundColor: "#1F2124",
-                    padding: "0.5rem",
-                    borderRadius: "50%",
-                  }}
-                />
-              )}
-            </ButtonBase>
-     
+          <ButtonBase onClick={holdHandler}>
+            {isHold ? (
+              <PauseCircleIcon
+                sx={{
+                  fontSize: 30,
+                  color: "white",
+                  backgroundColor: "#1F2124",
+                  padding: "0.5rem",
+                  borderRadius: "50%",
+                }}
+              />
+            ) : (
+              <PauseCircleOutlineOutlinedIcon
+                sx={{
+                  fontSize: 30,
+                  color: "#C0C0C0",
+                  backgroundColor: "#1F2124",
+                  padding: "0.5rem",
+                  borderRadius: "50%",
+                }}
+              />
+            )}
+          </ButtonBase>
         </Grid>
         <Grid item>
           <ButtonBase>
@@ -143,8 +139,10 @@ const MinimizeCallScreen = (props) => {
           </ButtonBase>
         </Grid>
         <Grid item>
-          <ButtonBase>
-            <VolumeUpIcon
+          <ButtonBase
+            onClick={()=>setContectData( {isOpen:true,buttonText:"Transfer"})}
+          >
+            <SyncAltIcon
               sx={{
                 fontSize: 30,
                 color: "white",
@@ -156,8 +154,8 @@ const MinimizeCallScreen = (props) => {
           </ButtonBase>
         </Grid>
         <Grid item>
-          <ButtonBase>
-            <PersonAddAltRoundedIcon
+          <ButtonBase onClick={()=>setContectData( {isOpen:true,buttonText:"Call"})}>
+            <PersonAddAltRoundedIcon 
               sx={{
                 fontSize: 30,
                 color: "white",
@@ -169,18 +167,18 @@ const MinimizeCallScreen = (props) => {
           </ButtonBase>
         </Grid>
         <Grid item>
-        <Tooltip title="End Call" placement='top'>
-          <ButtonBase onClick={() => onEndCall()}>
-            <CallEndIcon
-              sx={{
-                fontSize: 30,
-                color: "white",
-                backgroundColor: "#E81313",
-                padding: "0.5rem",
-                borderRadius: "50%",
-              }}
-            />
-          </ButtonBase>
+          <Tooltip title='End Call' placement='top'>
+            <ButtonBase onClick={() => onEndCall()}>
+              <CallEndIcon
+                sx={{
+                  fontSize: 30,
+                  color: "white",
+                  backgroundColor: "#E81313",
+                  padding: "0.5rem",
+                  borderRadius: "50%",
+                }}
+              />
+            </ButtonBase>
           </Tooltip>
         </Grid>
       </Grid>
