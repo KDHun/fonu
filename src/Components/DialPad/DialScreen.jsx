@@ -26,10 +26,6 @@ const DialScreen = (props) => {
               display: "flex",
               justifyContent: "center",
             }}
-            // onClick={() => {
-            //   setIsTyped(true);
-            //   setNumber("+234 70 1234 5678");
-            // }}
           >
             Call using Virtual number +234 70 1234 5678{" "}
             <ExpandMoreIcon sx={{ height: 17, width: 17 }} />
@@ -38,7 +34,6 @@ const DialScreen = (props) => {
       </Box>
 
       <Box sx={{ padding: "0rem 1rem 1rem 1rem" }}>
-
         <KeyPad
           isTyped={isTyped}
           setIsTyped={setIsTyped}

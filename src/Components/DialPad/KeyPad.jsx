@@ -1,5 +1,5 @@
 import { Box, Grid, TextField, Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import BackSpaceIcon from "../../Images/Backspace.png";
 import CallIcon from "../../Images/Call.png";
 import { useSelector, useDispatch } from "react-redux";
@@ -14,27 +14,34 @@ import {
 //     .toLowerCase()
 //     .match(/(\+\d{1,3}\s?)?((\(\d{3}\)\s?)|(\d{3})(\s|-?))(\d{3}(\s|-?))(\d{4})(\s?(([E|e]xt[:|.|]?)|x|X)(\s?\d+))?/g);
 // };
-
+let inputValue;
 const KeyPad = (props) => {
   const phonenumber = useSelector((state) => state.phonenumber.phonenumber);
   const dispatch = useDispatch();
-
+  const [DTMF, setDTMF] = useState("");
   const { onHide, makeCall, sendDTMFHandler, callState } = props;
 
   const InputHandler = (data) => {
+    if (callState === "Connected") {
+      setDTMF((state) => {
+        return state + data;
+      });
+      sendDTMFHandler(data);
+      return;
+    }
     if (data === "delete") {
       dispatch(deletePhonenumberChar());
       return;
     }
-    if (callState === "Connected") {
-      sendDTMFHandler(data);
-    }
     dispatch(addPhonenumberChar(data));
   };
   const handleChange = (event) => {
+    if (callState === "Connected") return;
     let data = event.target.value.replace(/[^0-9]/g, "");
     dispatch(setPhonenumber(data));
   };
+
+  console.log(inputValue,"intp");
   return (
     <Box>
       <Box
@@ -45,9 +52,11 @@ const KeyPad = (props) => {
         }}>
         <div style={{ display: "flex", justifyContent: "flex-end", maxWidth: "100%" }}>
           <TextField
-            placeholder='Enter Number'
+            //disabled="disabled"
+            //placeholder='Enter Number'
             variant='standard'
             sx={{
+              caretColor: "transparent",
               border: "none",
               width: "100%",
               fontWeight: "100",
@@ -67,7 +76,7 @@ const KeyPad = (props) => {
                 color: "black",
               },
             }}
-            value={phonenumber}
+            value={callState==="Connected"?DTMF:phonenumber}
             onChange={handleChange}
           />
         </div>
@@ -243,23 +252,21 @@ const KeyPad = (props) => {
             </Box>
           </Grid>
           <Grid item xs={4}>
-            {/* {" "}
             <Box
               sx={{
-                display: "flex",
+                display: callState === "Connected" ? "none" : "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 "&:hover": { cursor: "pointer" },
               }}
               onClick={() => InputHandler("+")}>
               <Typography sx={{ fontSize: 30 }}>+</Typography>
-            </Box> */}
+            </Box>
           </Grid>
           <Grid item xs={4}>
-            {" "}
             <Box
               sx={{
-                display: "flex",
+                display: callState === "Connected" ? "none" : "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 "&:hover": { cursor: "pointer" },
@@ -276,7 +283,11 @@ const KeyPad = (props) => {
       <Grid container spacing={2}>
         <Grid item xs={4}></Grid>
         <Grid item textAlign='center' marginTop='1rem' xs={4}>
-          <Box sx={{ "&:hover": { cursor: "pointer" } }}>
+          <Box
+            sx={{
+              display: callState === "Connected" ? "none" : "",
+              "&:hover": { cursor: "pointer" },
+            }}>
             <img
               src={CallIcon}
               alt=''
@@ -298,7 +309,10 @@ const KeyPad = (props) => {
           }}>
           {callState === "Connected" && (
             <Typography
-              sx={{ margin: "auto", "&:hover": { cursor: "pointer" } }}
+              sx={{
+                margin: "auto",
+                "&:hover": { cursor: "pointer" },
+              }}
               onClick={() => onHide(false)}>
               Hide
             </Typography>

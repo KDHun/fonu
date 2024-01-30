@@ -32,7 +32,7 @@ const DialPad = (props) => {
     isOpen: false,
     buttonText: "",
   });
-  const isCallScreen = useRef(false);
+  const isCallingScreen = useRef(false);
   console.log(activeCalls, "refer");
 
   const muteHandler = () => {
@@ -187,10 +187,9 @@ const DialPad = (props) => {
           });
         } else if (newSession._direction === "outgoing") {
           setOutgoingSession(newSession);
-          setCallState("outgoing");
-          newSession.on("progress", () => {
-            setCallState("calling");
-          });
+          setCallState("calling");
+
+          newSession.on("progress", () => {});
           newSession.on("accepted", () => {
             console.log("accept");
             setOngoingCall({
@@ -199,7 +198,7 @@ const DialPad = (props) => {
               phonenumber: newSession?._remote_identity?._uri?._user,
               name: newSession?._remote_identity?._display_name || "Unknown",
             });
-
+            isCallingScreen.current = false;
             setActiveCalls((state) => {
               return [
                 {
@@ -227,7 +226,6 @@ const DialPad = (props) => {
         }
 
         newSession.on("ended", () => {
-
           const updatedState = activeCalls.filter((c) => newSession._id !== c.call._id);
 
           if (newSession._id === ongoingCall?.call?._id) {
@@ -272,7 +270,7 @@ const DialPad = (props) => {
 
   const makeCall = (number = phonenumber) => {
     if (!number) return;
-    isCallScreen.current = true;
+    isCallingScreen.current = true;
     setCallState("calling");
     if (ua) {
       const options = {
@@ -290,6 +288,7 @@ const DialPad = (props) => {
       };
 
       const newSession = ua.call(`sip:+91${number}@callapi.efone.ca`, options);
+      setOutgoingSession(newSession);
       console.log(number, "phonenumber st call");
       console.log(newSession, "newsession");
     }
@@ -332,6 +331,20 @@ const DialPad = (props) => {
   };
 
   const endCall = () => {
+    try {
+      if (incommingSession) {
+        incommingSession.terminate();
+      }
+    } catch (error) {
+      console.log("Error in terminating call", error);
+    }
+    try {
+      if (outgoingSession) {
+        outgoingSession.terminate();
+      }
+    } catch (error) {
+      console.log("Error in terminating call", error);
+    }
     activeCalls.forEach((item) => {
       try {
         item.call.terminate();
@@ -489,6 +502,7 @@ const DialPad = (props) => {
             </Box>
 
             <CallingScreen
+              isCallingScreen={isCallingScreen.current}
               acceptCall={acceptCall}
               rejectCall={rejectCall}
               sendDTMFHandler={sendDTMFHandler}

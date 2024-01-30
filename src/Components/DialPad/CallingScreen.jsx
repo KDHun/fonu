@@ -47,8 +47,9 @@ const CallingScreen = (props) => {
     makeCall,
     setContectData,
     sendDTMFHandler,
+    isCallingScreen,
   } = props;
-console.log(isMultipleCall,"mul")
+  console.log(isMultipleCall, "mul");
   const [isRecord, setIsRecord] = useState(false);
   const [isKeyPad, setIsKeyPad] = useState(false);
 
@@ -65,7 +66,6 @@ console.log(isMultipleCall,"mul")
   };
   console.log(props);
 
-
   return (
     <Grid container height='85vh'>
       <Grid item xs={isMultipleCall ? 6 : 12} height='100%'>
@@ -73,14 +73,26 @@ console.log(isMultipleCall,"mul")
         {callState === "incomming" && (
           <CallScreen acceptCall={acceptCall} rejectCall={rejectCall} displayName={displayName} />
         )}
-        {(callState === "Connected" ||callState === "calling") && (
+        {(callState === "Connected" || callState === "calling") && (
           <Box sx={{ color: "black", textAlign: "center", padding: "2rem 0", height: "100%" }}>
             {!isKeyPad && (
               <Box position='relative' height='100%'>
-                {(callState === "calling" || (!isMultipleCall && callState === "Connected")) && (
+                {!isMultipleCall && (
                   <Box>
                     <Typography sx={{ fontSize: 30 }}>
                       {callState === "Connected" ? activeCalls[0]?.name : "Unknown"}
+                    </Typography>
+                    <Typography sx={{ color: "#87909B", fontSize: "0.8rem" }}>
+                      {callState === "Connected"
+                        ? `Connected · ${TimeFormat(callTime)}`
+                        : "Calling..."}
+                    </Typography>
+                  </Box>
+                )}
+                {isMultipleCall && (
+                  <Box>
+                    <Typography sx={{ fontSize: 30 }}>
+                      {activeCalls.length} Calls Connected
                     </Typography>
                     <Typography sx={{ color: "#87909B", fontSize: "0.8rem" }}>
                       {callState === "Connected"
@@ -259,9 +271,9 @@ console.log(isMultipleCall,"mul")
                         borderRadius: "50%",
                         backgroundColor: "#E81313",
                         padding: "1.3rem",
-                        ":disabled":{
-                          backgroundColor:"#8f5454"
-                        }
+                        ":disabled": {
+                          backgroundColor: "#8f5454",
+                        },
                       }}
                       onClick={onEndCall}>
                       <CallEndIcon sx={{ color: "#FFFFFE", fontSize: 40 }} />
@@ -272,7 +284,7 @@ console.log(isMultipleCall,"mul")
             )}
             {isKeyPad && (
               <KeyPad
-              callState={callState}
+                callState={callState}
                 onHide={() => setIsKeyPad(false)}
                 makeCall={makeCall}
                 sendDTMFHandler={sendDTMFHandler}
@@ -297,11 +309,12 @@ console.log(isMultipleCall,"mul")
                 <Box
                   display='flex'
                   justifyContent='space-between'
-                  backgroundColor='#4F772D'
+                  backgroundColor='#F9FAFB'
+                  border= "1px solid #DDE0E4"
                   margin='0.2rem'
                   padding='0.3rem'
                   borderRadius='0.2rem'>
-                  <Box sx={{ color: "white", textAlign: "left" }}>
+                  <Box sx={{ textAlign: "left" }}>
                     <Typography>{item.name}</Typography>
                     <Typography>{item.phonenumber}</Typography>
                   </Box>
@@ -314,9 +327,9 @@ console.log(isMultipleCall,"mul")
                         margin: "0.5rem",
                       }}>
                       {item.hold ? (
-                        <PlayArrowIcon sx={{ color: "white" }} />
+                        <PlayArrowIcon sx={{ color: "black" }} />
                       ) : (
-                        <PauseIcon sx={{ color: "white" }} />
+                        <PauseIcon sx={{ color: "black" }} />
                       )}
                     </ButtonBase>
                     <ButtonBase
