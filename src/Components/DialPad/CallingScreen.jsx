@@ -127,7 +127,7 @@ const CallingScreen = (props) => {
                             <MicIcon sx={{ color: "#1F2124", fontSize: 32 }} />
                           )}
                         </ButtonBase>
-                        <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
+                        <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }} whiteSpace="nowrap">
                           {isMute
                             ? isMultipleCall
                               ? "Unmute all"
