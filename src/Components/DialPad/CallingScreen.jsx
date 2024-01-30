@@ -27,6 +27,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import DialScreen from "./DialScreen";
 import CallScreen from "./CallScreen";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 const CallingScreen = (props) => {
   const {
     acceptCall,
@@ -92,7 +93,16 @@ const CallingScreen = (props) => {
                 {isMultipleCall && (
                   <Box>
                     <Typography sx={{ fontSize: 30 }}>
-                      {activeCalls.length} Calls Connected
+                      {activeCalls.length} Calls Connected{"  "}
+                      <ButtonBase
+                        sx={{
+                          borderRadius: "50%",
+                          border: "1px solid #DDE0E4",
+                          backgroundColor: "#F9FAFB",
+                          padding: "0.5rem",
+                        }}>
+                        <KeyboardArrowRightIcon sx={{ color: "#1F2124", fontSize: 25 }} />
+                      </ButtonBase>
                     </Typography>
                     <Typography sx={{ color: "#87909B", fontSize: "0.8rem" }}>
                       {callState === "Connected"
@@ -127,7 +137,9 @@ const CallingScreen = (props) => {
                             <MicIcon sx={{ color: "#1F2124", fontSize: 32 }} />
                           )}
                         </ButtonBase>
-                        <Typography sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }} whiteSpace="nowrap">
+                        <Typography
+                          sx={{ fontSize: "0.9rem", marginTop: "0.5rem" }}
+                          whiteSpace='nowrap'>
                           {isMute
                             ? isMultipleCall
                               ? "Unmute all"
@@ -310,7 +322,7 @@ const CallingScreen = (props) => {
                   display='flex'
                   justifyContent='space-between'
                   backgroundColor='#F9FAFB'
-                  border= "1px solid #DDE0E4"
+                  border='1px solid #DDE0E4'
                   margin='0.2rem'
                   padding='0.3rem'
                   borderRadius='0.2rem'>
